@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OLAG SHS Prefectship Elections</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        olagBlue: '#002D62',
+                        olagDark: '#001A3A',
+                        olagGold: '#D4AF37'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans flex flex-col justify-between">
+
+    <!-- Header -->
+    <header class="bg-olagBlue text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center">
+            <div class="flex items-center space-x-3 mb-3 md:mb-0">
+                <div class="bg-white text-olagBlue font-black p-3 rounded-xl text-xl shadow">OLAG</div>
+                <div>
+                    <h1 class="text-xl font-bold">Our Lady of Grace SHS</h1>
+                    <p class="text-xs text-blue-200">Prefectship Election & Voting Portal</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button onclick="switchView('student')" id="navStudentBtn" class="bg-white text-olagBlue px-4 py-2 rounded-lg font-semibold text-sm shadow transition hover:bg-blue-50">
+                    <i class="fa-solid fa-vote-yea mr-1"></i> Student Portal
+                </button>
+                <button onclick="switchView('admin')" id="navAdminBtn" class="bg-olagDark text-white border border-blue-400 px-4 py-2 rounded-lg font-semibold text-sm shadow transition hover:bg-blue-900">
+                    <i class="fa-solid fa-lock mr-1"></i> Admin Portal
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="max-w-7xl mx-auto px-4 py-8 flex-grow w-full">
+
+        <!-- ================= STUDENT PORTAL ================= -->
+        <div id="studentView" class="space-y-6">
+            <!-- Status Banner -->
+            <div id="votingStatusBanner" class="bg-blue-900 text-white p-4 rounded-xl shadow-md flex justify-between items-center">
+                <div>
+                    <h2 class="text-lg font-bold"><i class="fa-solid fa-circle-info mr-2"></i>Election Status: <span id="statusTextDisplay" class="text-yellow-300">Loading...</span></h2>
+                    <p class="text-xs text-blue-200" id="statusSubText">Please enter your student details to participate.</p>
+                </div>
+                <div id="turnoutBadge" class="bg-white/10 px-3 py-1.5 rounded-lg text-sm font-semibold">
+                    Total Ballots: <span id="totalBallotsCount">0</span>
+                </div>
+            </div>
+
+            <!-- Voting Form Container -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Ballot Column -->
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-olagBlue">
+                        <h2 class="text-xl font-bold text-olagBlue mb-2"><i class="fa-solid fa-id-card mr-2"></i>Voter Authentication</h2>
+                        <p class="text-sm text-gray-600 mb-4">Enter your unique Student ID and Name to unlock your ballot. Each student can vote only once.</p>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Student ID / Index No</label>
+                                <input type="text" id="voterId" placeholder="" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-olagBlue">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Full Name</label>
+                                <input type="text" id="voterName" placeholder="" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-olagBlue">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Ballot Positions -->
+                    <div id="ballotContainer" class="space-y-6">
+                        <!-- Populated via JavaScript -->
+                    </div>
+
+                    <div id="voteSubmitContainer" class="hidden">
+                        <button onclick="submitBallot()" class="w-full bg-olagBlue text-white py-3 rounded-xl font-bold shadow-lg hover:bg-olagDark transition flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-paper-plane"></i>
+                            <span>Submit Official Ballot</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Live Results Sidebar -->
+                <div class="space-y-6">
+                    <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-yellow-500">
+                        <h3 class="text-lg font-bold text-olagBlue mb-4"><i class="fa-solid fa-chart-pie mr-2"></i>Live Results Tally</h3>
+                        <div id="liveResultsContainer" class="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                            <!-- Live results populated via JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= ADMIN LOGIN / PANEL ================= -->
+        <div id="adminView" class="hidden space-y-6">
+            <!-- Passcode Gate -->
+            <div id="adminLoginBox" class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg border-t-4 border-olagBlue mt-10">
+                <div class="text-center mb-6">
+                    <div class="bg-olagBlue text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 shadow">
+                        <i class="fa-solid fa-lock text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-olagBlue">Admin Authentication</h2>
+                    <p class="text-xs text-gray-500 mt-1">Enter your secure administrator passcode to manage elections.</p>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Passcode</label>
+                        <input type="password" id="adminPasscode" placeholder="" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-olagBlue">
+                    </div>
+                    <button onclick="verifyAdmin()" class="w-full bg-olagBlue text-white py-2.5 rounded-lg font-bold shadow hover:bg-olagDark transition">
+                        Access Dashboard
+                    </button>
+                </div>
+            </div>
+
+            <!-- Actual Admin Dashboard (Hidden until login) -->
+            <div id="adminDashboard" class="hidden space-y-6">
+                <div class="bg-white p-6 rounded-xl shadow-md flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-olagBlue"><i class="fa-solid fa-gauge mr-2"></i>Election Commissioner Dashboard</h2>
+                        <p class="text-xs text-gray-500">Manage candidates, open/close voting, and oversee results.</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button onclick="toggleVotingStatus()" id="toggleStatusBtn" class="px-4 py-2 rounded-lg text-sm font-bold text-white shadow">Toggle Status</button>
+                        <button onclick="resetAllData()" class="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow hover:bg-red-700">Reset Data</button>
+                        <button onclick="logoutAdmin()" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-bold shadow hover:bg-gray-300">Logout</button>
+                    </div>
+                </div>
+
+                <!-- Add Candidate Form -->
+                <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-olagBlue">
+                    <h3 class="text-lg font-bold text-olagBlue mb-4"><i class="fa-solid fa-user-plus mr-2"></i>Register New Candidate</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Position</label>
+                            <select id="candPosition" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-olagBlue">
+                                <option value="Senior Prefect">Senior Prefect</option>
+                                <option value="Girls Prefect">Girls Prefect</option>
+                                <option value="Environmental Prefect">Environmental Prefect</option>
+                                <option value="Dining Hall Prefect">Dining Hall Prefect</option>
+                                <option value="Entertainment Prefect">Entertainment Prefect</option>
+                                <option value="Protocol Prefect">Protocol Prefect</option>
+                                <option value="Prep Prefect">Prep Prefect</option>
+                                <option value="Utility Prefect">Utility Prefect</option>
+                                <option value="ICT Prefect">ICT Prefect</option>
+                                <option value="Music Prefect">Music Prefect</option>
+                                <option value="Sports Prefect">Sports Prefect</option>
+                                <option value="Health Prefect">Health Prefect</option>
+                                <option value="Library Prefect">Library Prefect</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Candidate Full Name</label>
+                            <input type="text" id="candName" placeholder="e.g. John Mensah" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-olagBlue">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Class / Form</label>
+                            <input type="text" id="candClass" placeholder="e.g. Form 2 Science" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-olagBlue">
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="addCandidate()" class="w-full bg-olagBlue text-white py-2 rounded-lg font-bold shadow hover:bg-olagDark transition">
+                                Add Candidate
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Candidate Management Table -->
+                <div class="bg-white p-6 rounded-xl shadow-md">
+                    <h3 class="text-lg font-bold text-olagBlue mb-4"><i class="fa-solid fa-users-gear mr-2"></i>Registered Candidates & Tally</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100 text-xs font-bold text-gray-600 uppercase border-b">
+                                    <th class="p-3">Position</th>
+                                    <th class="p-3">Candidate Name</th>
+                                    <th class="p-3">Class</th>
+                                    <th class="p-3">Votes</th>
+                                    <th class="p-3 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminCandidateTable" class="divide-y text-sm">
+                                <!-- Populated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-olagDark text-white py-4 mt-8">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-blue-200">
+            &copy; 2026 Our Lady of Grace Senior High School (OLAG SHS). All rights reserved. Secure Electoral System.
+        </div>
+    </footer>
+
+    <!-- Application Script -->
+    <script>
+        // Initial Mock Database State
+        const defaultState = {
+            votingOpen: true,
+            candidates: [
+                { id: 1, position: 'Senior Prefect', name: 'Kwame Asante', class: 'Form 2 Arts', votes: 45 },
+                { id: 2, position: 'Senior Prefect', name: 'Abigail Appiah', class: 'Form 2 Science', votes: 62 },
+                { id: 3, position: 'Girls Prefect', name: 'Blessing Osei', class: 'Form 2 Business', votes: 88 },
+                { id: 4, position: 'Environmental Prefect', name: 'Yaw Frimpong', class: 'Form 2 General Arts', votes: 54 }
+            ],
+            voters: [] // list of IDs that have voted
+        };
+
+        let appState = JSON.parse(localStorage.getItem('olag_election_state')) || defaultState;
+
+        function saveState() {
+            localStorage.setItem('olag_election_state', JSON.stringify(appState));
+            renderAll();
+        }
+
+        function switchView(view) {
+            const studentView = document.getElementById('studentView');
+            const adminView = document.getElementById('adminView');
+            const navStudentBtn = document.getElementById('navStudentBtn');
+            const navAdminBtn = document.getElementById('navAdminBtn');
+
+            if (view === 'student') {
+                studentView.classList.remove('hidden');
+                adminView.classList.add('hidden');
+                navStudentBtn.className = "bg-white text-olagBlue px-4 py-2 rounded-lg font-semibold text-sm shadow transition";
+                navAdminBtn.className = "bg-olagDark text-white border border-blue-400 px-4 py-2 rounded-lg font-semibold text-sm shadow transition hover:bg-blue-900";
+            } else {
+                studentView.classList.add('hidden');
+                adminView.classList.remove('hidden');
+                navAdminBtn.className = "bg-white text-olagBlue px-4 py-2 rounded-lg font-semibold text-sm shadow transition";
+                navStudentBtn.className = "bg-olagDark text-white border border-blue-400 px-4 py-2 rounded-lg font-semibold text-sm shadow transition hover:bg-blue-900";
+            }
+        }
+
+        function verifyAdmin() {
+            const passcode = document.getElementById('adminPasscode').value;
+            if (passcode === 'admin2026') {
+                document.getElementById('adminLoginBox').classList.add('hidden');
+                document.getElementById('adminDashboard').classList.remove('hidden');
+                document.getElementById('adminPasscode').value = '';
+            } else {
+                alert('Incorrect Passcode!');
+            }
+        }
+
+        function logoutAdmin() {
+            document.getElementById('adminLoginBox').classList.remove('hidden');
+            document.getElementById('adminDashboard').classList.add('hidden');
+        }
+
+        function toggleVotingStatus() {
+            appState.votingOpen = !appState.votingOpen;
+            saveState();
+        }
+
+        function addCandidate() {
+            const position = document.getElementById('candPosition').value;
+            const name = document.getElementById('candName').value.trim();
+            const cls = document.getElementById('candClass').value.trim();
+
+            if (!name || !cls) {
+                alert('Please fill in all candidate details.');
+                return;
+            }
+
+            const newCand = {
+                id: Date.now(),
+                position,
+                name,
+                class: cls,
+                votes: 0
+            };
+
+            appState.candidates.push(newCand);
+            document.getElementById('candName').value = '';
+            document.getElementById('candClass').value = '';
+            saveState();
+        }
+
+        function deleteCandidate(id) {
+            if (confirm('Are you sure you want to remove this candidate?')) {
+                appState.candidates = appState.candidates.filter(c => c.id !== id);
+                saveState();
+            }
+        }
+
+        function resetAllData() {
+            if (confirm('WARNING: This will reset all votes and candidates back to default. Continue?')) {
+                appState = JSON.parse(JSON.stringify(defaultState));
+                saveState();
+            }
+        }
+
+        function submitBallot() {
+            const voterId = document.getElementById('voterId').value.trim();
+            const voterName = document.getElementById('voterName').value.trim();
+
+            if (!voterId || !voterName) {
+                alert('Please enter your Student ID and Full Name before submitting.');
+                return;
+            }
+
+            if (appState.voters.includes(voterId)) {
+                alert('Access Denied: This Student ID has already cast a vote!');
+                return;
+            }
+
+            // Gather selected candidates per position
+            const positions = [...new Set(appState.candidates.map(c => c.position))];
+            let choicesCount = 0;
+
+            positions.forEach(pos => {
+                const selectedRadio = document.querySelector(`input[name="pos_${pos}"]:checked`);
+                if (selectedRadio) {
+                    const candId = parseInt(selectedRadio.value);
+                    const candidate = appState.candidates.find(c => c.id === candId);
+                    if (candidate) {
+                        candidate.votes += 1;
+                        choicesCount++;
+                    }
+                }
+            });
+
+            if (choicesCount === 0) {
+                alert('Please select at least one candidate to vote for.');
+                return;
+            }
+
+            appState.voters.push(voterId);
+            saveState();
+            alert('Your vote has been successfully cast and recorded!');
+            
+            // Clear inputs
+            document.getElementById('voterId').value = '';
+            document.getElementById('voterName').value = '';
+            document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+        }
+
+        function renderAll() {
+            // Status banner update
+            const statusTextDisplay = document.getElementById('statusTextDisplay');
+            const statusSubText = document.getElementById('statusSubText');
+            const toggleStatusBtn = document.getElementById('toggleStatusBtn');
+            const voteSubmitContainer = document.getElementById('voteSubmitContainer');
+
+            if (appState.votingOpen) {
+                statusTextDisplay.innerText = "OPEN FOR VOTING";
+                statusSubText.innerText = "Cast your votes below securely.";
+                toggleStatusBtn.innerText = "Close Voting";
+                toggleStatusBtn.className = "bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow hover:bg-red-700";
+                voteSubmitContainer.classList.remove('hidden');
+            } else {
+                statusTextDisplay.innerText = "CLOSED";
+                statusSubText.innerText = "Voting has been closed by the electoral commission.";
+                toggleStatusBtn.innerText = "Open Voting";
+                toggleStatusBtn.className = "bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow hover:bg-green-700";
+                voteSubmitContainer.classList.add('hidden');
+            }
+
+            document.getElementById('totalBallotsCount').innerText = appState.voters.length;
+
+            // Render Student Ballot Positions
+            const ballotContainer = document.getElementById('ballotContainer');
+            const positions = [...new Set(appState.candidates.map(c => c.position))];
+
+            if (positions.length === 0) {
+                ballotContainer.innerHTML = `<div class="bg-white p-6 rounded-xl shadow text-center text-gray-500">No positions or candidates configured yet. Please add candidates via the admin portal.</div>`;
+            } else {
+                ballotContainer.innerHTML = positions.map(pos => {
+                    const cands = appState.candidates.filter(c => c.position === pos);
+                    return `
+                        <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-olagBlue">
+                            <h3 class="text-lg font-bold text-olagBlue mb-4 flex items-center justify-between">
+                                <span><i class="fa-solid fa-check-to-slot mr-2"></i>${pos}</span>
+                                <span class="text-xs bg-blue-100 text-olagBlue px-2.5 py-1 rounded-full font-semibold">Select 1</span>
+                            </h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                ${cands.map(c => `
+                                    <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-blue-50 transition border-gray-200">
+                                        <input type="radio" name="pos_${pos}" value="${c.id}" class="text-olagBlue focus:ring-olagBlue h-4 w-4">
+                                        <div class="ml-3">
+                                            <p class="font-bold text-gray-800">${c.name}</p>
+                                            <p class="text-xs text-gray-500">${c.class}</p>
+                                        </div>
+                                    </label>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Render Live Results Sidebar
+            const liveResultsContainer = document.getElementById('liveResultsContainer');
+            if (positions.length === 0) {
+                liveResultsContainer.innerHTML = `<p class="text-xs text-gray-500">No results to display.</p>`;
+            } else {
+                liveResultsContainer.innerHTML = positions.map(pos => {
+                    const cands = appState.candidates.filter(c => c.position === pos);
+                    const totalPosVotes = cands.reduce((sum, c) => sum + c.votes, 0);
+
+                    return `
+                        <div class="space-y-2 border-b pb-3">
+                            <h4 class="font-bold text-sm text-gray-700">${pos}</h4>
+                            ${cands.length === 0 ? `<p class="text-xs text-gray-400">No candidates registered</p>` : cands.map(c => {
+                                const pct = totalPosVotes > 0 ? Math.round((c.votes / totalPosVotes) * 100) : 0;
+                                return `
+                                    <div class="text-xs space-y-1">
+                                        <div class="flex justify-between font-semibold">
+                                            <span>${c.name}</span>
+                                            <span>${c.votes} votes (${pct}%)</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+                                            <div class="bg-olagBlue h-full" style="width: ${pct}%"></div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Render Admin Candidate Table
+            const adminTable = document.getElementById('adminCandidateTable');
+            if (appState.candidates.length === 0) {
+                adminTable.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-500">No candidates added yet.</td></tr>`;
+            } else {
+                adminTable.innerHTML = appState.candidates.map(c => `
+                    <tr class="hover:bg-gray-50 border-b">
+                        <td class="p-3 font-semibold text-olagBlue">${c.position}</td>
+                        <td class="p-3 font-bold">${c.name}</td>
+                        <td class="p-3 text-gray-500">${c.class}</td>
+                        <td class="p-3 font-bold text-green-600">${c.votes}</td>
+                        <td class="p-3 text-right">
+                            <button onclick="deleteCandidate(${c.id})" class="text-red-500 hover:text-red-700 p-1">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        // Initial load
+        renderAll();
+    </script>
+</body>
+</html>
