@@ -96,7 +96,7 @@
                 <div class="space-y-6">
                     <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-yellow-500">
                         <h3 class="text-lg font-bold text-olagBlue mb-4"><i class="fa-solid fa-chart-pie mr-2"></i>Live Results Tally</h3>
-                        <div id="liveResultsContainer" class="space-y-4">
+                        <div id="liveResultsContainer" class="space-y-4 max-h-[600px] overflow-y-auto pr-2">
                             <!-- Live results populated via JS -->
                         </div>
                     </div>
@@ -149,9 +149,17 @@
                             <select id="candPosition" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-olagBlue">
                                 <option value="Senior Prefect">Senior Prefect</option>
                                 <option value="Girls Prefect">Girls Prefect</option>
-                                <option value="Compound Prefect">Compound Prefect</option>
+                                <option value="Environmental Prefect">Environmental Prefect</option>
                                 <option value="Dining Hall Prefect">Dining Hall Prefect</option>
                                 <option value="Entertainment Prefect">Entertainment Prefect</option>
+                                <option value="Protocol Prefect">Protocol Prefect</option>
+                                <option value="Prep Prefect">Prep Prefect</option>
+                                <option value="Utility Prefect">Utility Prefect</option>
+                                <option value="ICT Prefect">ICT Prefect</option>
+                                <option value="Music Prefect">Music Prefect</option>
+                                <option value="Sports Prefect">Sports Prefect</option>
+                                <option value="Health Prefect">Health Prefect</option>
+                                <option value="Library Prefect">Library Prefect</option>
                             </select>
                         </div>
                         <div>
@@ -211,7 +219,7 @@
                 { id: 1, position: 'Senior Prefect', name: 'Kwame Asante', class: 'Form 2 Arts', votes: 45 },
                 { id: 2, position: 'Senior Prefect', name: 'Abigail Appiah', class: 'Form 2 Science', votes: 62 },
                 { id: 3, position: 'Girls Prefect', name: 'Blessing Osei', class: 'Form 2 Business', votes: 88 },
-                { id: 4, position: 'Compound Prefect', name: 'Yaw Frimpong', class: 'Form 2 General Arts', votes: 54 }
+                { id: 4, position: 'Environmental Prefect', name: 'Yaw Frimpong', class: 'Form 2 General Arts', votes: 54 }
             ],
             voters: [] // list of IDs that have voted
         };
@@ -361,91 +369,4 @@
                 voteSubmitContainer.classList.remove('hidden');
             } else {
                 statusTextDisplay.innerText = "CLOSED";
-                statusSubText.innerText = "Voting has been closed by the electoral commission.";
-                toggleStatusBtn.innerText = "Open Voting";
-                toggleStatusBtn.className = "bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow hover:bg-green-700";
-                voteSubmitContainer.classList.add('hidden');
-            }
-
-            document.getElementById('totalBallotsCount').innerText = appState.voters.length;
-
-            // Render Student Ballot Positions
-            const ballotContainer = document.getElementById('ballotContainer');
-            const positions = [...new Set(appState.candidates.map(c => c.position))];
-
-            if (positions.length === 0) {
-                ballotContainer.innerHTML = `<div class="bg-white p-6 rounded-xl shadow text-center text-gray-500">No positions or candidates configured yet. Please check back later.</div>`;
-            } else {
-                ballotContainer.innerHTML = positions.map(pos => {
-                    const cands = appState.candidates.filter(c => c.position === pos);
-                    return `
-                        <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-olagBlue">
-                            <h3 class="text-lg font-bold text-olagBlue mb-4 flex items-center justify-between">
-                                <span><i class="fa-solid fa-check-to-slot mr-2"></i>${pos}</span>
-                                <span class="text-xs bg-blue-100 text-olagBlue px-2.5 py-1 rounded-full font-semibold">Select 1</span>
-                            </h3>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                ${cands.map(c => `
-                                    <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-blue-50 transition border-gray-200">
-                                        <input type="radio" name="pos_${pos}" value="${c.id}" class="text-olagBlue focus:ring-olagBlue h-4 w-4">
-                                        <div class="ml-3">
-                                            <p class="font-bold text-gray-800">${c.name}</p>
-                                            <p class="text-xs text-gray-500">${c.class}</p>
-                                        </div>
-                                    </label>
-                                `).join('')}
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            }
-
-            // Render Live Results Sidebar
-            const liveResultsContainer = document.getElementById('liveResultsContainer');
-            liveResultsContainer.innerHTML = positions.map(pos => {
-                const cands = appState.candidates.filter(c => c.position === pos);
-                const totalPosVotes = cands.reduce((sum, c) => sum + c.votes, 0);
-
-                return `
-                    <div class="space-y-2 border-b pb-3">
-                        <h4 class="font-bold text-sm text-gray-700">${pos}</h4>
-                        ${cands.map(c => {
-                            const pct = totalPosVotes > 0 ? Math.round((c.votes / totalPosVotes) * 100) : 0;
-                            return `
-                                <div class="text-xs space-y-1">
-                                    <div class="flex justify-between font-semibold">
-                                        <span>${c.name}</span>
-                                        <span>${c.votes} votes (${pct}%)</span>
-                                    </div>
-                                    <div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-                                        <div class="bg-olagBlue h-full" style="width: ${pct}%"></div>
-                                    </div>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                `;
-            }).join('');
-
-            // Render Admin Candidate Table
-            const adminTable = document.getElementById('adminCandidateTable');
-            adminTable.innerHTML = appState.candidates.map(c => `
-                <tr class="hover:bg-gray-50 border-b">
-                    <td class="p-3 font-semibold text-olagBlue">${c.position}</td>
-                    <td class="p-3 font-bold">${c.name}</td>
-                    <td class="p-3 text-gray-500">${c.class}</td>
-                    <td class="p-3 font-bold text-green-600">${c.votes}</td>
-                    <td class="p-3 text-right">
-                        <button onclick="deleteCandidate(${c.id})" class="text-red-500 hover:text-red-700 p-1">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        // Initial load
-        renderAll();
-    </script>
-</body>
-</html>
+                
